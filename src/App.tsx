@@ -17,6 +17,7 @@ import Kanban from "./pages/Kanban";
 import Issues from "./pages/Issues";
 import Users from "./pages/Users";
 import Billing from "./pages/Billing";
+import Profile from "./pages/Profile";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -87,6 +88,11 @@ const App = () => (
               <Route path="/billing" element={
                 <ProtectedRoute>
                   <Layout><Billing /></Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Layout><Profile /></Layout>
                 </ProtectedRoute>
               } />
               
