@@ -59,6 +59,42 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          status: string
+          subscription_end_date: string | null
+          subscription_plan: string | null
+          subscription_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          status?: string
+          subscription_end_date?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          status?: string
+          subscription_end_date?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       issue_comments: {
         Row: {
           content: string
@@ -203,6 +239,9 @@ export type Database = {
           phone: string | null
           role: string
           status: string | null
+          subscription_end_date: string | null
+          subscription_plan: string | null
+          subscription_status: string | null
           updated_at: string
         }
         Insert: {
@@ -216,6 +255,9 @@ export type Database = {
           phone?: string | null
           role: string
           status?: string | null
+          subscription_end_date?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
           updated_at?: string
         }
         Update: {
@@ -229,6 +271,9 @@ export type Database = {
           phone?: string | null
           role?: string
           status?: string | null
+          subscription_end_date?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -414,6 +459,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       send_notification: {
         Args: {
           p_user_id: string

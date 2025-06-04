@@ -5,114 +5,48 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, Users, CreditCard, AlertTriangle, TrendingUp, Plus, Search, Filter } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { useUser } from "@/contexts/UserContext";
+import { useCompanies } from "@/hooks/useCompanies";
+import CompanyManagement from "@/components/CompanyManagement";
 
 const AdminDashboard = () => {
   const { user } = useUser();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [isAddCompanyOpen, setIsAddCompanyOpen] = useState(false);
-  const [newCompany, setNewCompany] = useState({
-    name: "",
-    email: "",
-    plan: "starter",
-    industry: ""
-  });
-
-  const [companies, setCompanies] = useState([
-    {
-      id: "1",
-      name: "Acme Corporation",
-      email: "admin@acme.com",
-      plan: "Pro",
-      status: "Active",
-      users: 45,
-      projects: 12,
-      revenue: 2500,
-      joinDate: "2024-01-15",
-      industry: "Technology"
-    },
-    {
-      id: "2",
-      name: "TechStart Solutions",
-      email: "contact@techstart.com",
-      plan: "Starter",
-      status: "Active",
-      users: 8,
-      projects: 3,
-      revenue: 299,
-      joinDate: "2024-03-20",
-      industry: "Software"
-    },
-    {
-      id: "3",
-      name: "Global Dynamics",
-      email: "info@globaldyn.com",
-      plan: "Enterprise",
-      status: "Trial",
-      users: 120,
-      projects: 25,
-      revenue: 0,
-      joinDate: "2024-05-10",
-      industry: "Consulting"
-    }
-  ]);
+  const { companies, getActiveCompanies } = useCompanies();
 
   const stats = [
-    { title: "Total Companies", value: "156", icon: Building2, change: "+12 this month", color: "bg-emerald-50 text-emerald-600" },
-    { title: "Active Users", value: "2,847", icon: Users, change: "+184 this week", color: "bg-blue-50 text-blue-600" },
-    { title: "Monthly Revenue", value: "KES 2.4M", icon: CreditCard, change: "+15% from last month", color: "bg-amber-50 text-amber-600" },
-    { title: "Support Tickets", value: "23", icon: AlertTriangle, change: "-8 from yesterday", color: "bg-red-50 text-red-600" }
+    { 
+      title: "Total Companies", 
+      value: companies.length.toString(), 
+      icon: Building2, 
+      change: "+12 this month", 
+      color: "bg-emerald-50 text-emerald-600" 
+    },
+    { 
+      title: "Active Companies", 
+      value: getActiveCompanies().length.toString(), 
+      icon: Building2, 
+      change: "+5 this week", 
+      color: "bg-blue-50 text-blue-600" 
+    },
+    { 
+      title: "Expired Subscriptions", 
+      value: companies.filter(c => c.subscription_status === 'expired').length.toString(), 
+      icon: AlertTriangle, 
+      change: "Need attention", 
+      color: "bg-red-50 text-red-600" 
+    },
+    { 
+      title: "Trial Companies", 
+      value: companies.filter(c => c.subscription_status === 'trial').length.toString(), 
+      icon: CreditCard, 
+      change: "Potential conversions", 
+      color: "bg-amber-50 text-amber-600" 
+    }
   ];
 
-  const handleAddCompany = () => {
-    if (newCompany.name && newCompany.email) {
-      const company = {
-        id: String(companies.length + 1),
-        name: newCompany.name,
-        email: newCompany.email,
-        plan: newCompany.plan,
-        status: "Trial",
-        users: 1,
-        projects: 0,
-        revenue: 0,
-        joinDate: new Date().toISOString().split('T')[0],
-        industry: newCompany.industry
-      };
-      
-      setCompanies([...companies, company]);
-      setNewCompany({ name: "", email: "", plan: "starter", industry: "" });
-      setIsAddCompanyOpen(false);
-    }
-  };
-
-  const filteredCompanies = companies.filter(company => {
-    const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         company.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || company.status.toLowerCase() === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const getPlanColor = (plan: string) => {
-    switch (plan.toLowerCase()) {
-      case 'enterprise': return 'bg-purple-100 text-purple-800';
-      case 'pro': return 'bg-green-100 text-green-800';
-      case 'starter': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'trial': return 'bg-yellow-100 text-yellow-800';
-      case 'suspended': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const recentCompanies = companies.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50">
@@ -126,73 +60,6 @@ const AdminDashboard = () => {
               </h1>
               <p className="text-gray-600 mt-2">System overview and company management</p>
             </div>
-            <Dialog open={isAddCompanyOpen} onOpenChange={setIsAddCompanyOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Company
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle className="text-emerald-700">Onboard New Company</DialogTitle>
-                  <DialogDescription>
-                    Add a new company to the platform
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="companyName">Company Name</Label>
-                    <Input
-                      id="companyName"
-                      value={newCompany.name}
-                      onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
-                      placeholder="Acme Corporation"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="companyEmail">Admin Email</Label>
-                    <Input
-                      id="companyEmail"
-                      type="email"
-                      value={newCompany.email}
-                      onChange={(e) => setNewCompany({...newCompany, email: e.target.value})}
-                      placeholder="admin@company.com"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="plan">Initial Plan</Label>
-                    <Select value={newCompany.plan} onValueChange={(value) => setNewCompany({...newCompany, plan: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="starter">Starter</SelectItem>
-                        <SelectItem value="pro">Pro</SelectItem>
-                        <SelectItem value="enterprise">Enterprise</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="industry">Industry</Label>
-                    <Input
-                      id="industry"
-                      value={newCompany.industry}
-                      onChange={(e) => setNewCompany({...newCompany, industry: e.target.value})}
-                      placeholder="Technology"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setIsAddCompanyOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleAddCompany} className="bg-emerald-600 hover:bg-emerald-700">
-                    Add Company
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
 
           {/* Stats Grid */}
@@ -214,85 +81,111 @@ const AdminDashboard = () => {
               </Card>
             ))}
           </div>
-
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search companies..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64 border-emerald-200 focus:border-emerald-500"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40 border-emerald-200 focus:border-emerald-500">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="trial">Trial</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
-        {/* Companies Table */}
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-amber-50">
-            <CardTitle className="text-2xl text-emerald-700">Companies</CardTitle>
-            <CardDescription>Manage all companies on the platform</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-emerald-100">
-              {filteredCompanies.map((company, index) => (
-                <div key={company.id} className="p-6 hover:bg-emerald-50/50 transition-all duration-200 cursor-pointer animate-fade-in" style={{animationDelay: `${index * 50}ms`}}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-amber-400 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-                          {company.name.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900 text-lg hover:text-emerald-600 transition-colors">
-                            {company.name}
-                          </h3>
-                          <p className="text-gray-600">{company.email}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-6 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Badge className={getPlanColor(company.plan)}>
-                            {company.plan}
-                          </Badge>
-                          <Badge className={getStatusColor(company.status)}>
-                            {company.status}
-                          </Badge>
-                        </div>
-                        <span>{company.users} users</span>
-                        <span>{company.projects} projects</span>
-                        <span>{company.industry}</span>
-                        <span>Joined {company.joinDate}</span>
-                      </div>
-                    </div>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="companies" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="companies">Company Management</TabsTrigger>
+            <TabsTrigger value="overview">System Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
 
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-emerald-600 mb-1">
-                        KES {company.revenue.toLocaleString()}
+          <TabsContent value="companies">
+            <CompanyManagement />
+          </TabsContent>
+
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Companies */}
+              <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardHeader className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-amber-50">
+                  <CardTitle className="text-xl text-emerald-700">Recent Companies</CardTitle>
+                  <CardDescription>Latest company registrations</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {recentCompanies.map((company) => (
+                      <div key={company.id} className="flex items-center justify-between p-3 bg-emerald-50/50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-gray-900">{company.name}</p>
+                          <p className="text-sm text-gray-600">{company.email}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className={company.subscription_status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                            {company.subscription_status}
+                          </Badge>
+                          <Badge variant="outline">
+                            {company.subscription_plan}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-500">Monthly Revenue</div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* System Health */}
+              <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardHeader className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-amber-50">
+                  <CardTitle className="text-xl text-emerald-700">System Health</CardTitle>
+                  <CardDescription>Platform status and metrics</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Database Status</span>
+                      <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">API Response Time</span>
+                      <span className="text-sm font-medium">125ms</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Active Sessions</span>
+                      <span className="text-sm font-medium">47</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Storage Usage</span>
+                      <span className="text-sm font-medium">2.3GB / 100GB</span>
                     </div>
                   </div>
-                </div>
-              ))}
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+              <CardHeader className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-amber-50">
+                <CardTitle className="text-xl text-emerald-700">Analytics & Reports</CardTitle>
+                <CardDescription>Detailed insights and performance metrics</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="text-center p-6 bg-emerald-50 rounded-lg">
+                    <TrendingUp className="w-8 h-8 mx-auto mb-2 text-emerald-600" />
+                    <h3 className="font-semibold text-gray-900">Revenue Growth</h3>
+                    <p className="text-2xl font-bold text-emerald-600 mt-1">+24%</p>
+                    <p className="text-sm text-gray-600">vs last month</p>
+                  </div>
+                  <div className="text-center p-6 bg-blue-50 rounded-lg">
+                    <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                    <h3 className="font-semibold text-gray-900">User Retention</h3>
+                    <p className="text-2xl font-bold text-blue-600 mt-1">89%</p>
+                    <p className="text-sm text-gray-600">monthly retention</p>
+                  </div>
+                  <div className="text-center p-6 bg-amber-50 rounded-lg">
+                    <CreditCard className="w-8 h-8 mx-auto mb-2 text-amber-600" />
+                    <h3 className="font-semibold text-gray-900">Conversion Rate</h3>
+                    <p className="text-2xl font-bold text-amber-600 mt-1">12.5%</p>
+                    <p className="text-sm text-gray-600">trial to paid</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
