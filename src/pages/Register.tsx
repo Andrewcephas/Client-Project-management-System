@@ -12,6 +12,7 @@ import { toast } from "sonner";
 interface Company {
   id: string;
   name: string;
+  email: string;
 }
 
 const Register = () => {
@@ -29,17 +30,19 @@ const Register = () => {
 
   const fetchCompanies = async () => {
     try {
-      // For now, we'll use predefined companies. In a real system, 
-      // these would be fetched from a companies table
-      const predefinedCompanies = [
-        { id: "catech", name: "CATECH" },
-        { id: "innovatecorp", name: "InnovateCorp" },
-        { id: "digitalsolutions", name: "DigitalSolutions" },
-        { id: "techforward", name: "TechForward" }
-      ];
-      setCompanies(predefinedCompanies);
+      // Fetch only active companies with active subscriptions for client registration
+      const { data, error } = await supabase
+        .from('companies')
+        .select('id, name, email')
+        .eq('status', 'active')
+        .eq('subscription_status', 'active')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setCompanies(data || []);
     } catch (error) {
       console.error('Error fetching companies:', error);
+      toast.error('Failed to load companies');
     }
   };
 
@@ -63,6 +66,9 @@ const Register = () => {
     setLoading(true);
 
     try {
+      // Get selected company details
+      const selectedCompany = companies.find(c => c.id === formData.companyId);
+      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -71,6 +77,7 @@ const Register = () => {
             full_name: formData.fullName,
             role: formData.role,
             company_id: formData.role === "client" ? formData.companyId : "",
+            company_name: formData.role === "client" && selectedCompany ? selectedCompany.name : "",
             phone: formData.phone
           }
         }
@@ -165,6 +172,11 @@ const Register = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {companies.length === 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    No active companies available. Please contact support.
+                  </p>
+                )}
               </div>
             )}
 

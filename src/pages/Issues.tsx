@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,16 +38,19 @@ const Issues = () => {
 
   const fetchProjects = async () => {
     try {
-      let query = supabase.from('projects').select('id, name, client');
+      let query = supabase.from('projects').select('id, name, client, client_id, company_id');
       
       // Filter projects based on user role
       if (isClient) {
+        // Clients only see their assigned projects
         query = query.eq('client_id', user.id);
       } else if (isCompany) {
+        // Company users see projects from their company
         query = query.eq('company_id', user.companyId);
       }
+      // Admin sees all projects
 
-      const { data, error } = await query;
+      const { data, error } = await query.order('name', { ascending: true });
       if (error) throw error;
       setProjects(data || []);
     } catch (error) {
@@ -69,10 +71,13 @@ const Issues = () => {
 
       // Filter issues based on user role
       if (isClient) {
-        query = query.eq('projects.client_id', user.id);
+        // Clients see issues from their assigned projects or issues they created
+        query = query.or(`projects.client_id.eq.${user.id},created_by.eq.${user.id}`);
       } else if (isCompany) {
+        // Company users see issues from their company's projects
         query = query.eq('projects.company_id', user.companyId);
       }
+      // Admin sees all issues
 
       const { data, error } = await query.order('created_at', { ascending: false });
       
@@ -241,6 +246,11 @@ const Issues = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {projects.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      No projects available. Please contact your project manager.
+                    </p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>

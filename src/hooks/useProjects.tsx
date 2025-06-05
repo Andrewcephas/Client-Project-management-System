@@ -41,10 +41,47 @@ export interface TeamMember {
   userId?: string;
 }
 
+export interface ClientUser {
+  id: string;
+  full_name: string;
+  email: string;
+  company_id: string;
+  company_name: string;
+}
+
 export const useProjects = () => {
   const { user, isAdmin, isCompany, isClient } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [clients, setClients] = useState<ClientUser[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const fetchClients = async () => {
+    if (!user || !isCompany) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, company_id, company_name')
+        .eq('role', 'client')
+        .eq('company_id', user.companyId)
+        .order('full_name', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedClients: ClientUser[] = data.map(client => ({
+        id: client.id,
+        full_name: client.full_name || client.email.split('@')[0],
+        email: client.email,
+        company_id: client.company_id,
+        company_name: client.company_name
+      }));
+
+      setClients(formattedClients);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      toast.error('Failed to fetch clients');
+    }
+  };
 
   const fetchProjects = async () => {
     if (!user) return;
@@ -54,8 +91,10 @@ export const useProjects = () => {
       let query = supabase.from('projects').select('*');
       
       if (isClient) {
+        // Clients only see projects they are assigned to
         query = query.eq('client_id', user.id);
       } else if (isCompany) {
+        // Company users see projects from their company
         query = query.eq('company_id', user.companyId);
       }
       // Admin sees all projects
@@ -106,6 +145,7 @@ export const useProjects = () => {
           due_date: updates.dueDate,
           priority: updates.priority,
           client: updates.client,
+          client_id: updates.clientId,
           budget: updates.budget,
           spent: updates.spent,
           phase: updates.phase,
@@ -172,13 +212,18 @@ export const useProjects = () => {
   useEffect(() => {
     if (user) {
       fetchProjects();
+      if (isCompany) {
+        fetchClients();
+      }
     }
-  }, [user]);
+  }, [user, isCompany]);
 
   return {
     projects,
+    clients,
     loading,
     fetchProjects,
+    fetchClients,
     updateProject,
     addProject
   };

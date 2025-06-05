@@ -29,7 +29,20 @@ export const useCompanies = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCompanies(data || []);
+      
+      const formattedCompanies: Company[] = (data || []).map(company => ({
+        id: company.id,
+        name: company.name,
+        email: company.email,
+        status: company.status as 'active' | 'inactive',
+        subscription_plan: company.subscription_plan,
+        subscription_status: company.subscription_status as 'active' | 'trial' | 'expired',
+        subscription_end_date: company.subscription_end_date,
+        created_at: company.created_at,
+        updated_at: company.updated_at
+      }));
+      
+      setCompanies(formattedCompanies);
     } catch (error) {
       console.error('Error fetching companies:', error);
     } finally {
@@ -46,8 +59,21 @@ export const useCompanies = () => {
         .single();
 
       if (error) throw error;
-      setCompanies(prev => [data, ...prev]);
-      return { success: true, data };
+      
+      const formattedCompany: Company = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        status: data.status as 'active' | 'inactive',
+        subscription_plan: data.subscription_plan,
+        subscription_status: data.subscription_status as 'active' | 'trial' | 'expired',
+        subscription_end_date: data.subscription_end_date,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+      
+      setCompanies(prev => [formattedCompany, ...prev]);
+      return { success: true, data: formattedCompany };
     } catch (error) {
       console.error('Error adding company:', error);
       return { success: false, error };
@@ -64,10 +90,23 @@ export const useCompanies = () => {
         .single();
 
       if (error) throw error;
+      
+      const formattedCompany: Company = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        status: data.status as 'active' | 'inactive',
+        subscription_plan: data.subscription_plan,
+        subscription_status: data.subscription_status as 'active' | 'trial' | 'expired',
+        subscription_end_date: data.subscription_end_date,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+      
       setCompanies(prev => prev.map(company => 
-        company.id === id ? data : company
+        company.id === id ? formattedCompany : company
       ));
-      return { success: true, data };
+      return { success: true, data: formattedCompany };
     } catch (error) {
       console.error('Error updating company:', error);
       return { success: false, error };
