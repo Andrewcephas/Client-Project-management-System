@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,15 +41,30 @@ const Projects = () => {
   }, [isCompany, user?.companyId]);
 
   const fetchClients = async () => {
+    if (!user?.companyId) {
+      console.log('No company ID found for user:', user);
+      return;
+    }
+
     try {
+      console.log('Fetching clients for company:', user.companyId);
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email')
+        .select('id, full_name, email, company_id, company_name')
         .eq('role', 'client')
-        .eq('company_id', user?.companyId);
+        .eq('company_id', user.companyId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching clients:', error);
+        throw error;
+      }
+
+      console.log('Fetched clients:', data);
       setClients(data || []);
+      
+      if (!data || data.length === 0) {
+        toast.info('No clients found for your company. Clients need to register and select your company.');
+      }
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast.error('Failed to fetch clients');
@@ -57,6 +73,10 @@ const Projects = () => {
 
   const handleAddProject = async () => {
     if (newProject.name && newProject.description && isCompany && user?.companyId) {
+      // Find the selected client's full name for display
+      const selectedClient = clients.find(c => c.id === newProject.clientId);
+      const clientName = selectedClient ? selectedClient.full_name || selectedClient.email : newProject.client;
+
       await addProject({
         name: newProject.name,
         description: newProject.description,
@@ -65,7 +85,7 @@ const Projects = () => {
         team: [],
         dueDate: newProject.dueDate,
         priority: newProject.priority,
-        client: newProject.client,
+        client: clientName,
         budget: newProject.budget,
         spent: 0,
         phase: "Planning",
@@ -215,21 +235,32 @@ const Projects = () => {
                             setNewProject({
                               ...newProject, 
                               clientId: value,
-                              client: selectedClient ? selectedClient.full_name : ''
+                              client: selectedClient ? (selectedClient.full_name || selectedClient.email) : ''
                             });
                           }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Choose a client" />
                           </SelectTrigger>
-                          <SelectContent>
-                            {clients.map((client) => (
-                              <SelectItem key={client.id} value={client.id}>
-                                {client.full_name} ({client.email})
+                          <SelectContent className="bg-white border shadow-lg z-50">
+                            {clients.length > 0 ? (
+                              clients.map((client) => (
+                                <SelectItem key={client.id} value={client.id}>
+                                  {client.full_name || client.email} ({client.email})
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="no-clients" disabled>
+                                No clients available - clients need to register first
                               </SelectItem>
-                            ))}
+                            )}
                           </SelectContent>
                         </Select>
+                        {clients.length === 0 && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            No clients found. Clients need to register and select your company first.
+                          </p>
+                        )}
                       </div>
                     )}
                     {!isCompany && (
@@ -259,7 +290,7 @@ const Projects = () => {
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-white border shadow-lg z-50">
                             <SelectItem value="Low">Low</SelectItem>
                             <SelectItem value="Medium">Medium</SelectItem>
                             <SelectItem value="High">High</SelectItem>
@@ -283,7 +314,11 @@ const Projects = () => {
                     <Button variant="outline" onClick={() => setIsAddProjectOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleAddProject} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Button 
+                      onClick={handleAddProject} 
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      disabled={!newProject.name || !newProject.description || (isCompany && !newProject.clientId)}
+                    >
                       Create Project
                     </Button>
                   </div>

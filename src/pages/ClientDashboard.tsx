@@ -47,15 +47,21 @@ const ClientDashboard = () => {
 
     setLoading(true);
     try {
+      console.log('Fetching projects for client:', user.id);
       const { data, error } = await supabase
         .from('projects')
         .select('*')
         .eq('client_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching projects:', error);
+        throw error;
+      }
 
-      const formattedProjects: Project[] = data.map(project => ({
+      console.log('Fetched client projects:', data);
+
+      const formattedProjects: Project[] = (data || []).map(project => ({
         id: project.id,
         name: project.name,
         description: project.description || '',
@@ -72,6 +78,10 @@ const ClientDashboard = () => {
       }));
 
       setProjects(formattedProjects);
+      
+      if (formattedProjects.length === 0) {
+        toast.info('No projects assigned to you yet. Please contact your service provider.');
+      }
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast.error('Failed to fetch projects');
@@ -211,7 +221,7 @@ const ClientDashboard = () => {
                             <h3 className="font-semibold text-gray-900 text-lg hover:text-emerald-600 transition-colors">
                               {project.name}
                             </h3>
-                            <Badge className={getStatusColor(project.status)}>
+                            <Badge className={`${getStatusColor(project.status)}`}>
                               {project.status}
                             </Badge>
                           </div>
@@ -225,7 +235,7 @@ const ClientDashboard = () => {
                               <span className="font-medium">Next Milestone:</span> {project.nextMilestone}
                             </div>
                             <div>
-                              <span className="font-medium">Due Date:</span> {project.dueDate || 'Not set'}
+                              <span className="font-medium">Due Date:</span> {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'Not set'}
                             </div>
                             <div>
                               <span className="font-medium">Last Update:</span> {project.lastUpdate}
@@ -286,8 +296,15 @@ const ClientDashboard = () => {
                   )) : (
                     <div className="p-12 text-center text-gray-500">
                       <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <h3 className="text-lg font-medium mb-2">No projects yet</h3>
-                      <p className="text-sm">You don't have any active projects. Contact us to get started!</p>
+                      <h3 className="text-lg font-medium mb-2">No projects assigned yet</h3>
+                      <p className="text-sm">You don't have any projects assigned to you. Please contact your service provider to get started!</p>
+                      <Button 
+                        className="mt-4 bg-emerald-600 hover:bg-emerald-700"
+                        onClick={() => navigate("/contact")}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Contact Support
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -338,6 +355,26 @@ const ClientDashboard = () => {
       </div>
     </div>
   );
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "In Progress": return "bg-emerald-100 text-emerald-800";
+    case "Planning": return "bg-amber-100 text-amber-800";
+    case "Completed": return "bg-green-100 text-green-800";
+    case "On Hold": return "bg-red-100 text-red-800";
+    case "Testing": return "bg-blue-100 text-blue-800";
+    default: return "bg-gray-100 text-gray-800";
+  }
+};
+
+const getUpdateTypeColor = (type: string) => {
+  switch (type) {
+    case "progress": return "bg-blue-100 text-blue-800";
+    case "milestone": return "bg-green-100 text-green-800";
+    case "approval": return "bg-amber-100 text-amber-800";
+    default: return "bg-gray-100 text-gray-800";
+  }
 };
 
 export default ClientDashboard;
