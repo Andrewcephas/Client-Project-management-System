@@ -56,9 +56,10 @@ export const useProjects = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchClients = async () => {
-    if (!user || !isCompany) return;
+    if (!user || !isCompany || !user.companyId) return;
     
     try {
+      console.log('Fetching clients for company:', user.companyId);
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, email, company_id, company_name')
@@ -67,6 +68,8 @@ export const useProjects = () => {
         .order('full_name', { ascending: true });
 
       if (error) throw error;
+
+      console.log('Fetched clients from profiles table:', data);
 
       const formattedClients: ClientUser[] = data.map(client => ({
         id: client.id,
