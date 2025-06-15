@@ -22,6 +22,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
     fullName: "",
     role: "client",
     companyId: "",
@@ -30,7 +31,6 @@ const Register = () => {
 
   const fetchCompanies = async () => {
     try {
-      // Fetch only active companies with active subscriptions for client registration
       const { data, error } = await supabase
         .from('companies')
         .select('id, name, email')
@@ -50,35 +50,77 @@ const Register = () => {
     fetchCompanies();
   }, []);
 
+  const validateForm = () => {
+    // Check if all required fields are filled
+    if (!formData.email?.trim()) {
+      toast.error("Email is required");
+      return false;
+    }
+    
+    if (!formData.password?.trim()) {
+      toast.error("Password is required");
+      return false;
+    }
+    
+    if (!formData.confirmPassword?.trim()) {
+      toast.error("Please confirm your password");
+      return false;
+    }
+    
+    if (!formData.fullName?.trim()) {
+      toast.error("Full name is required");
+      return false;
+    }
+
+    // Email validation
+    if (!formData.email.includes('@') || formData.email.length < 5) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+
+    // Password validation
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return false;
+    }
+
+    // Role-specific validation
+    if (formData.role === "client" && !formData.companyId?.trim()) {
+      toast.error("Please select a company");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password || !formData.fullName) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (formData.role === "client" && !formData.companyId) {
-      toast.error("Please select a company");
+    if (!validateForm()) {
       return;
     }
 
     setLoading(true);
 
     try {
-      // Get selected company details
       const selectedCompany = companies.find(c => c.id === formData.companyId);
       
       const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: formData.fullName,
+            full_name: formData.fullName.trim(),
             role: formData.role,
             company_id: formData.role === "client" ? formData.companyId : "",
             company_name: formData.role === "client" && selectedCompany ? selectedCompany.name : "",
-            phone: formData.phone
+            phone: formData.phone?.trim() || ""
           }
         }
       });
@@ -90,17 +132,18 @@ const Register = () => {
         navigate("/login");
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred during registration");
+      console.error('Registration error:', error);
+      toast.error(error.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-xl border-0 bg-white backdrop-blur-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Create Account
           </CardTitle>
           <CardDescription>
@@ -118,6 +161,7 @@ const Register = () => {
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 placeholder="Enter your full name"
                 required
+                className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
@@ -130,6 +174,7 @@ const Register = () => {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="Enter your email"
                 required
+                className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
@@ -141,16 +186,17 @@ const Register = () => {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="Enter your phone number"
+                className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="role">Role *</Label>
               <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="border-blue-200 focus:border-blue-500">
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border shadow-lg z-50">
                   <SelectItem value="client">Client</SelectItem>
                   <SelectItem value="company">Company User</SelectItem>
                 </SelectContent>
@@ -161,10 +207,10 @@ const Register = () => {
               <div className="space-y-2">
                 <Label htmlFor="company">Select Company *</Label>
                 <Select value={formData.companyId} onValueChange={(value) => setFormData({ ...formData, companyId: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-blue-200 focus:border-blue-500">
                     <SelectValue placeholder="Choose a company" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white border shadow-lg z-50">
                     {companies.map((company) => (
                       <SelectItem key={company.id} value={company.id}>
                         {company.name}
@@ -187,14 +233,28 @@ const Register = () => {
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="Create a password"
+                placeholder="Create a password (min 6 characters)"
                 required
+                className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password *</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                placeholder="Confirm your password"
+                required
+                className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <Button 
               type="submit" 
-              className="w-full bg-emerald-600 hover:bg-emerald-700" 
+              className="w-full bg-blue-600 hover:bg-blue-700" 
               disabled={loading}
             >
               {loading ? "Creating Account..." : "Create Account"}
@@ -204,7 +264,7 @@ const Register = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
-              <Link to="/login" className="text-emerald-600 hover:text-emerald-700 font-medium">
+              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
                 Sign in
               </Link>
             </p>

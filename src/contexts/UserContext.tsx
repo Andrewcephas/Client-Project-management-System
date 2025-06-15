@@ -63,7 +63,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         setSession(session);
         
         if (session?.user) {
-          // Fetch user profile from database
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 0);
@@ -138,22 +137,30 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       
+      // Clear any existing sessions first
+      await supabase.auth.signOut();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
       if (error) {
         console.error('Login error:', error);
-        toast.error(error.message);
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Invalid email or password. Please check your credentials.');
+        } else {
+          toast.error(error.message);
+        }
         return false;
       }
 
-      if (data.user) {
+      if (data.user && data.session) {
         toast.success('Login successful!');
         return true;
       }
 
+      toast.error('Login failed. Please try again.');
       return false;
     } catch (error) {
       console.error('Login error:', error);
@@ -174,11 +181,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setLoading(true);
 
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: userData.fullName,
+            full_name: userData.fullName.trim(),
             role: userData.role,
             company_name: userData.companyName || '',
             company_id: userData.companyId || ''
@@ -188,7 +196,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
       if (error) {
         console.error('Registration error:', error);
-        toast.error(error.message);
+        if (error.message.includes('User already registered')) {
+          toast.error('An account with this email already exists. Please try logging in instead.');
+        } else {
+          toast.error(error.message);
+        }
         return false;
       }
 

@@ -49,14 +49,17 @@ export interface ClientUser {
   company_name: string;
 }
 
-export const useProjects = () => {
+export const useProjects = ()  => {
   const { user, isAdmin, isCompany, isClient } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<ClientUser[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchClients = async () => {
-    if (!user || !isCompany || !user.companyId) return;
+    if (!user || !isCompany || !user.companyId) {
+      console.log('Cannot fetch clients: missing user, not company user, or no company ID');
+      return;
+    }
     
     try {
       console.log('Fetching clients for company:', user.companyId);
@@ -67,19 +70,26 @@ export const useProjects = () => {
         .eq('company_id', user.companyId)
         .order('full_name', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching clients:', error);
+        throw error;
+      }
 
       console.log('Fetched clients from profiles table:', data);
 
-      const formattedClients: ClientUser[] = data.map(client => ({
+      const formattedClients: ClientUser[] = (data || []).map(client => ({
         id: client.id,
         full_name: client.full_name || client.email.split('@')[0],
         email: client.email,
         company_id: client.company_id,
-        company_name: client.company_name
+        company_name: client.company_name || ''
       }));
 
       setClients(formattedClients);
+      
+      if (formattedClients.length === 0) {
+        console.log('No clients found for company:', user.companyId);
+      }
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast.error('Failed to fetch clients');
@@ -106,7 +116,7 @@ export const useProjects = () => {
 
       if (error) throw error;
 
-      const formattedProjects: Project[] = data.map(project => ({
+      const formattedProjects: Project[] = (data || []).map(project => ({
         id: project.id,
         name: project.name,
         description: project.description || '',

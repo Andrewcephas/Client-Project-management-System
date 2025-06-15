@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,12 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Eye, EyeOff } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login, loading } = useUser();
-  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,23 +20,26 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please enter both email and password"
-      });
+    // Validate inputs
+    if (!email?.trim() || !password?.trim()) {
+      toast.error("Please enter both email and password");
       return;
     }
 
-    const success = await login(email, password);
+    if (!email.includes('@') || email.length < 5) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    const success = await login(email.trim(), password);
     
     if (success) {
-      toast({
-        title: "Success",
-        description: "Login successful! Redirecting..."
-      });
-      
+      toast.success("Login successful! Redirecting...");
       setTimeout(() => {
         navigate("/dashboard");
       }, 1000);
@@ -44,42 +47,32 @@ const Login = () => {
   };
 
   const handleSocialLogin = (provider: string) => {
-    toast({
-      title: "Coming Soon",
-      description: `${provider} login will be available soon`
-    });
+    toast.info(`${provider} login will be available soon`);
   };
 
   const handleForgotPassword = () => {
-    if (email) {
-      toast({
-        title: "Password Reset",
-        description: `Password reset link sent to ${email}`
-      });
+    if (email?.trim()) {
+      toast.success(`Password reset instructions sent to ${email}`);
     } else {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please enter your email first"
-      });
+      toast.error("Please enter your email first");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-amber-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8 animate-fade-in">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-amber-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <Briefcase className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent">ProjectHub</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">ProjectHub</span>
           </Link>
         </div>
 
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm animate-fade-in" style={{animationDelay: "200ms"}}>
-          <CardHeader className="text-center bg-gradient-to-r from-emerald-50 to-amber-50 rounded-t-lg">
+        <Card className="border-0 shadow-xl bg-white backdrop-blur-sm animate-fade-in" style={{animationDelay: "200ms"}}>
+          <CardHeader className="text-center bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
             <CardTitle className="text-2xl text-gray-900">Welcome back</CardTitle>
             <CardDescription>
               Sign in to your account to continue
@@ -96,7 +89,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="border-emerald-200 focus:border-emerald-500"
+                  className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               
@@ -110,7 +103,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="border-emerald-200 focus:border-emerald-500 pr-10"
+                    className="border-blue-200 focus:border-blue-500 focus:ring-blue-500 pr-10"
                   />
                   <Button
                     type="button"
@@ -135,7 +128,7 @@ const Login = () => {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <Label htmlFor="remember" className="text-sm text-gray-600">
                     Remember me
@@ -144,7 +137,7 @@ const Login = () => {
                 <Button
                   type="button"
                   variant="link"
-                  className="text-sm text-emerald-600 hover:text-emerald-700 p-0"
+                  className="text-sm text-blue-600 hover:text-blue-700 p-0"
                   onClick={handleForgotPassword}
                 >
                   Forgot password?
@@ -153,7 +146,7 @@ const Login = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-emerald-600 hover:bg-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
                 disabled={loading}
               >
                 {loading ? "Signing in..." : "Sign in"}
@@ -172,7 +165,7 @@ const Login = () => {
                 <Button 
                   type="button"
                   variant="outline" 
-                  className="border-emerald-300 hover:bg-emerald-50"
+                  className="border-blue-300 hover:bg-blue-50"
                   onClick={() => handleSocialLogin("Google")}
                 >
                   <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
@@ -186,7 +179,7 @@ const Login = () => {
                 <Button 
                   type="button"
                   variant="outline" 
-                  className="border-emerald-300 hover:bg-emerald-50"
+                  className="border-blue-300 hover:bg-blue-50"
                   onClick={() => handleSocialLogin("GitHub")}
                 >
                   <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -199,7 +192,7 @@ const Login = () => {
 
             <div className="mt-6 text-center text-sm text-gray-600">
               Don't have an account?{" "}
-              <Link to="/register" className="text-emerald-600 hover:text-emerald-700 font-medium">
+              <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
                 Sign up
               </Link>
             </div>
