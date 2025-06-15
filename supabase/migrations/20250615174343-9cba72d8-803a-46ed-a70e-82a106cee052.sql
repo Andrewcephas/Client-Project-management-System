@@ -10,17 +10,17 @@ DECLARE
 BEGIN
   company_id_text := NEW.raw_user_meta_data->>'company_id';
 
-  -- For clients, derive company name from id
+  -- Do not attempt to map company_id to company_name for clients; always use the provided value
   IF (NEW.raw_user_meta_data->>'role' = 'client') THEN
-    SELECT
-      CASE company_id_text
-        WHEN 'catech' THEN 'CATECH'
-        WHEN 'innovatecorp' THEN 'InnovateCorp'
-        WHEN 'digitalsolutions' THEN 'DigitalSolutions'
-        WHEN 'techforward' THEN 'TechForward'
-        ELSE company_id_text -- Fallback to id if not found
-      END
-    INTO company_name_text;
+    -- Optionally, join company_name from companies table if you want
+    SELECT name INTO company_name_text
+    FROM public.companies
+    WHERE id = company_id_text;
+
+    -- fallback to "Unknown" if not found
+    IF company_name_text IS NULL THEN
+      company_name_text := 'Unknown';
+    END IF;
   ELSE
     -- For companies, company_name is passed in meta_data, or is the full_name
     company_name_text := COALESCE(NEW.raw_user_meta_data->>'company_name', NEW.raw_user_meta_data->>'full_name');
