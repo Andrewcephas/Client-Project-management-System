@@ -46,17 +46,12 @@ export const useUser = () => {
   return context;
 };
 
-interface UserProviderProps {
-  children: ReactNode;
-}
-
-export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
@@ -74,7 +69,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
@@ -137,7 +131,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       
-      // Clear any existing sessions first
       await supabase.auth.signOut();
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -184,7 +177,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             full_name: userData.fullName.trim(),
             role: userData.role,
@@ -197,7 +190,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       if (error) {
         console.error('Registration error:', error);
         if (error.message.includes('User already registered')) {
-          toast.error('An account with this email already exists. Please try logging in instead.');
+          toast.error('An account with this email already exists.');
         } else {
           toast.error(error.message);
         }
@@ -205,7 +198,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
 
       if (data.user) {
-        toast.success('Registration successful! Please check your email to verify your account.');
+        toast.success('Registration successful!');
         return true;
       }
 
