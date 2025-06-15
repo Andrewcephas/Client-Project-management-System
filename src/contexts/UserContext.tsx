@@ -58,9 +58,16 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSession(session);
         
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+          // For OAuth users, ensure profile exists and is active
+          if (event === 'SIGNED_IN' && session.user.app_metadata?.provider) {
+            setTimeout(() => {
+              handleOAuthUser(session.user);
+            }, 100);
+          } else {
+            setTimeout(() => {
+              fetchUserProfile(session.user.id);
+            }, 0);
+          }
         } else {
           setUser(null);
         }
@@ -81,6 +88,46 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleOAuthUser = async (supabaseUser: SupabaseUser) => {
+    try {
+      // Check if profile exists
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking OAuth profile:', error);
+        return;
+      }
+
+      if (!profile) {
+        // Create profile for OAuth user
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            full_name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || '',
+            role: 'client',
+            status: 'active'
+          });
+
+        if (insertError) {
+          console.error('Error creating OAuth profile:', insertError);
+          toast.error('Failed to create user profile');
+          return;
+        }
+      }
+
+      // Fetch the profile
+      fetchUserProfile(supabaseUser.id);
+    } catch (error) {
+      console.error('Error handling OAuth user:', error);
+    }
+  };
+
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data: profile, error } = await supabase
@@ -91,11 +138,13 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         console.error('Error fetching profile:', error);
-        toast.error('Failed to load user profile');
+        if (error.code !== 'PGRST116') {
+          toast.error('Failed to load user profile');
+        }
         return;
       }
 
-      if (profile) {
+      if (profile && profile.status === 'active') {
         const userData: User = {
           id: profile.id,
           name: profile.full_name || profile.email.split('@')[0],
@@ -110,7 +159,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      toast.error('Failed to load user profile');
     }
   };
 
@@ -130,8 +178,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
-      
-      await supabase.auth.signOut();
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -153,7 +199,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return true;
       }
 
-      toast.error('Login failed. Please try again.');
       return false;
     } catch (error) {
       console.error('Login error:', error);
@@ -177,7 +222,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             full_name: userData.fullName.trim(),
             role: userData.role,
