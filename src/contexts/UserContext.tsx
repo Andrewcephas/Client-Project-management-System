@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -242,9 +241,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       if (data.user) {
-        // If registering as a company, create the company record
+        // If registering as a company, create the company record and update profile
         if (userData.role === 'company' && userData.companyName) {
-          const { error: companyError } = await supabase
+          const { data: companyData, error: companyError } = await supabase
             .from('companies')
             .insert({
               name: userData.companyName,
@@ -252,12 +251,27 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               status: 'active',
               subscription_status: 'trial',
               subscription_plan: 'trial'
-            });
+            })
+            .select('id')
+            .single();
 
           if (companyError) {
             console.error('Error creating company:', companyError);
             toast.error('Failed to create company. Please contact support.');
             return false;
+          }
+
+          if (companyData) {
+            // Update the new user's profile with the company ID
+            const { error: profileUpdateError } = await supabase
+              .from('profiles')
+              .update({ company_id: companyData.id })
+              .eq('id', data.user.id);
+
+            if (profileUpdateError) {
+              console.error('Error updating profile with company ID:', profileUpdateError);
+              toast.error('Failed to link company to your profile. Please contact support.');
+            }
           }
         }
 

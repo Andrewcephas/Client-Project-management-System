@@ -14,7 +14,8 @@ const Register = () => {
     const success = await register(data.email, data.password, {
       fullName: data.fullName,
       role: data.role,
-      companyName: data.companyName
+      companyName: data.companyName,
+      companyId: data.companyId,
     });
     
     if (success) {
