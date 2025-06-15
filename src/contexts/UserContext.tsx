@@ -242,6 +242,25 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       if (data.user) {
+        // If registering as a company, create the company record
+        if (userData.role === 'company' && userData.companyName) {
+          const { error: companyError } = await supabase
+            .from('companies')
+            .insert({
+              name: userData.companyName,
+              email: email.trim(),
+              status: 'active',
+              subscription_status: 'trial',
+              subscription_plan: 'trial'
+            });
+
+          if (companyError) {
+            console.error('Error creating company:', companyError);
+            toast.error('Failed to create company. Please contact support.');
+            return false;
+          }
+        }
+
         toast.success('Registration successful!');
         return true;
       }

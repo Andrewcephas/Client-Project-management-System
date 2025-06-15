@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { UserRole } from "@/contexts/UserContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RegisterFormProps {
   onSubmit: (data: RegisterData) => Promise<void>;
@@ -19,25 +20,65 @@ export interface RegisterData {
   fullName: string;
   role: UserRole;
   companyName?: string;
+  companyId?: string;
+}
+
+interface Company {
+  id: string;
+  name: string;
 }
 
 export const RegisterForm = ({ onSubmit, loading }: RegisterFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
     fullName: "",
-    role: "" as UserRole,
-    companyName: ""
+    role: "client" as UserRole,
+    companyName: "",
+    companyId: ""
   });
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('id, name')
+        .eq('status', 'active')
+        .order('name');
+
+      if (error) throw error;
+      setCompanies(data || []);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      toast.error('Failed to load companies');
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
+  const handleCompanyChange = (companyId: string) => {
+    const selectedCompany = companies.find(c => c.id === companyId);
+    setFormData({
+      ...formData, 
+      companyId,
+      companyName: selectedCompany?.name || ""
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
-    if (!formData.email?.trim() || !formData.password?.trim() || !formData.fullName?.trim() || !formData.role) {
+    if (!formData.email?.trim() || !formData.password?.trim() || !formData.fullName?.trim()) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -62,12 +103,18 @@ export const RegisterForm = ({ onSubmit, loading }: RegisterFormProps) => {
       return;
     }
 
+    if (formData.role === 'client' && !formData.companyId) {
+      toast.error("Please select a company");
+      return;
+    }
+
     await onSubmit({
       email: formData.email.trim(),
       password: formData.password,
       fullName: formData.fullName.trim(),
       role: formData.role,
-      companyName: formData.companyName?.trim()
+      companyName: formData.companyName?.trim(),
+      companyId: formData.companyId
     });
   };
 
@@ -101,12 +148,11 @@ export const RegisterForm = ({ onSubmit, loading }: RegisterFormProps) => {
 
       <div className="space-y-2">
         <Label htmlFor="role" className="text-gray-800">Role *</Label>
-        <Select onValueChange={(value: UserRole) => setFormData({...formData, role: value})}>
+        <Select onValueChange={(value: UserRole) => setFormData({...formData, role: value})} value={formData.role}>
           <SelectTrigger className="border-gray-300 focus:border-red-500 focus:ring-red-500">
             <SelectValue placeholder="Select your role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="company">Company</SelectItem>
             <SelectItem value="client">Client</SelectItem>
           </SelectContent>
@@ -125,6 +171,24 @@ export const RegisterForm = ({ onSubmit, loading }: RegisterFormProps) => {
             required
             className="border-gray-300 focus:border-red-500 focus:ring-red-500"
           />
+        </div>
+      )}
+
+      {formData.role === 'client' && (
+        <div className="space-y-2">
+          <Label htmlFor="company" className="text-gray-800">Select Company *</Label>
+          <Select onValueChange={handleCompanyChange} disabled={loadingCompanies}>
+            <SelectTrigger className="border-gray-300 focus:border-red-500 focus:ring-red-500">
+              <SelectValue placeholder={loadingCompanies ? "Loading companies..." : "Select a company"} />
+            </SelectTrigger>
+            <SelectContent>
+              {companies.map((company) => (
+                <SelectItem key={company.id} value={company.id}>
+                  {company.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
