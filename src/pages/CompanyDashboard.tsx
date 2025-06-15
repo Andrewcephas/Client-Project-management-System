@@ -563,6 +563,11 @@ const CompanyDashboard = () => {
                     <CardTitle className="text-xl text-emerald-700">Recent Clients</CardTitle>
                     <CardDescription>Clients who signed up</CardDescription>
                   </div>
+                  <Link to="/users">
+                    <Button variant="outline" size="sm" className="border-emerald-300 hover:bg-emerald-50">
+                      View All
+                    </Button>
+                  </Link>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
