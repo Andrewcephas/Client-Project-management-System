@@ -1,238 +1,214 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Globe, Star, Shield, Zap, Users, Briefcase, ChevronRight, CheckCircle, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  CheckCircle, 
+  Users, 
+  Briefcase, 
+  BarChart3, 
+  Shield, 
+  Clock,
+  ArrowRight,
+  Star,
+  Building2,
+  Zap,
+  Globe
+} from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Landing = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  const translations = {
-    en: {
-      hero: {
-        title: "Transform Your Project Management",
-        subtitle: "Streamline workflows, enhance collaboration, and deliver exceptional results with our intelligent project management platform.",
-        cta: "Get Started Today",
-        login: "Sign In"
-      },
-      features: {
-        title: "Powerful Features for Modern Teams",
-        cards: [
-          {
-            icon: Briefcase,
-            title: "Smart Project Tracking",
-            description: "AI-powered insights and real-time progress monitoring to keep your projects on track.",
-            gradient: "from-blue-500 to-cyan-500"
-          },
-          {
-            icon: Users,
-            title: "Team Collaboration",
-            description: "Seamless communication tools and role-based access for efficient teamwork.",
-            gradient: "from-emerald-500 to-teal-500"
-          },
-          {
-            icon: Shield,
-            title: "Enterprise Security",
-            description: "Bank-level security with advanced encryption and compliance standards.",
-            gradient: "from-purple-500 to-pink-500"
-          },
-          {
-            icon: Zap,
-            title: "Lightning Fast",
-            description: "Optimized performance with instant loading and real-time synchronization.",
-            gradient: "from-orange-500 to-red-500"
-          }
-        ]
-      },
-      pricing: {
-        title: "Choose Your Plan",
-        plans: [
-          {
-            name: "Starter",
-            price: "$29",
-            period: "/month",
-            features: ["Up to 5 projects", "10 team members", "Basic analytics", "Email support"]
-          },
-          {
-            name: "Professional",
-            price: "$79",
-            period: "/month",
-            features: ["Unlimited projects", "50 team members", "Advanced analytics", "Priority support", "Custom integrations"]
-          },
-          {
-            name: "Enterprise",
-            price: "Custom",
-            period: "",
-            features: ["Unlimited everything", "Custom solutions", "Dedicated support", "On-premise option", "SLA guarantee"]
-          }
-        ]
-      }
+  const features = [
+    {
+      icon: Briefcase,
+      title: "Project Management",
+      description: "Comprehensive project tracking with timelines, milestones, and progress monitoring."
     },
-    sw: {
-      hero: {
-        title: "Badilisha Usimamizi wa Miradi Yako",
-        subtitle: "Rahisisha mchakato wa kazi, ongeza ushirikiano, na toa matokeo bora kwa kutumia jukwaa letu la kisasa la usimamizi wa miradi.",
-        cta: "Anza Leo",
-        login: "Ingia"
-      },
-      features: {
-        title: "Vipengele Vyenye Nguvu kwa Timu za Kisasa",
-        cards: [
-          {
-            icon: Briefcase,
-            title: "Ufuatiliaji wa Akili wa Miradi",
-            description: "Maarifa yanayoongozwa na AI na ufuatiliaji wa wakati halisi ili kuweka miradi yako kwenye njia.",
-            gradient: "from-blue-500 to-cyan-500"
-          },
-          {
-            icon: Users,
-            title: "Ushirikiano wa Timu",
-            description: "Zana za mawasiliano za urahisi na ufikiaji kulingana na jukumu kwa kazi ya ufanisi.",
-            gradient: "from-emerald-500 to-teal-500"
-          },
-          {
-            icon: Shield,
-            title: "Usalama wa Kiwango cha Juu",
-            description: "Usalama wa kiwango cha benki na usimbaji wa hali ya juu na viwango vya kufuata.",
-            gradient: "from-purple-500 to-pink-500"
-          },
-          {
-            icon: Zap,
-            title: "Kasi ya Umeme",
-            description: "Utendaji uliobobozwa na upakiaji wa haraka na usawazishaji wa wakati halisi.",
-            gradient: "from-orange-500 to-red-500"
-          }
-        ]
-      },
-      pricing: {
-        title: "Chagua Mpango Wako",
-        plans: [
-          {
-            name: "Mwanzo",
-            price: "$29",
-            period: "/mwezi",
-            features: ["Hadi miradi 5", "Wanatimu 10", "Uchanganuzi wa msingi", "Msaada wa barua pepe"]
-          },
-          {
-            name: "Kitaalamu",
-            price: "$79",
-            period: "/mwezi",
-            features: ["Miradi isiyo na kikomo", "Wanatimu 50", "Uchanganuzi wa hali ya juu", "Msaada wa kipaumbele", "Miunganisho maalum"]
-          },
-          {
-            name: "Biashara",
-            price: "Maalum",
-            period: "",
-            features: ["Kila kitu bila kikomo", "Suluhisho maalum", "Msaada wa kipekee", "Chaguo la ndani", "Uhakikisho wa SLA"]
-          }
-        ]
-      }
+    {
+      icon: Users,
+      title: "Team Collaboration",
+      description: "Seamless team management with role-based access and real-time communication."
+    },
+    {
+      icon: BarChart3,
+      title: "Analytics & Reports",
+      description: "Detailed insights and customizable reports to track performance and productivity."
+    },
+    {
+      icon: Shield,
+      title: "Enterprise Security",
+      description: "Bank-level security with end-to-end encryption and compliance standards."
+    },
+    {
+      icon: Clock,
+      title: "Time Tracking",
+      description: "Accurate time tracking with automated timesheets and billing integration."
+    },
+    {
+      icon: Globe,
+      title: "Global Access",
+      description: "Access your projects from anywhere with our cloud-based platform."
     }
-  };
-
-  const t = translations[selectedLanguage];
-
-  const languages = [
-    { code: "en", name: "English", flag: "🇺🇸" },
-    { code: "sw", name: "Kiswahili", flag: "🇹🇿" }
   ];
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "Project Manager at TechCorp",
+      content: "ProjectHub has transformed how we manage projects. The intuitive interface and powerful features make it indispensable.",
+      rating: 5
+    },
+    {
+      name: "Michael Chen",
+      role: "CEO at StartupXYZ",
+      content: "Since switching to ProjectHub, our team productivity has increased by 40%. Highly recommended!",
+      rating: 5
+    },
+    {
+      name: "Emily Davis",
+      role: "Operations Director",
+      content: "The reporting features are exceptional. We can now track progress in real-time and make data-driven decisions.",
+      rating: 5
+    }
+  ];
+
+  const plans = [
+    {
+      name: "Starter",
+      price: "Free",
+      description: "Perfect for small teams getting started",
+      features: [
+        "Up to 5 projects",
+        "5 team members",
+        "Basic reporting",
+        "Email support"
+      ],
+      popular: false
+    },
+    {
+      name: "Professional",
+      price: "$29",
+      period: "/month",
+      description: "Ideal for growing businesses",
+      features: [
+        "Unlimited projects",
+        "25 team members",
+        "Advanced analytics",
+        "Priority support",
+        "Custom integrations"
+      ],
+      popular: true
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      description: "For large organizations",
+      features: [
+        "Everything in Professional",
+        "Unlimited team members",
+        "Advanced security",
+        "Dedicated account manager",
+        "SLA guarantee"
+      ],
+      popular: false
+    }
+  ];
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900' : 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'}`}>
-      {/* Language and Theme Selector */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        <div className="flex gap-2">
-          {languages.map((lang) => (
-            <Button
-              key={lang.code}
-              variant={selectedLanguage === lang.code ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedLanguage(lang.code)}
-              className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
-            >
-              <Globe className="w-4 h-4 mr-1" />
-              {lang.flag} {lang.name}
-            </Button>
-          ))}
+    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 dark:from-black dark:to-gray-900">
+      {/* Header */}
+      <header className="border-b border-red-200 dark:border-red-800 bg-white/80 dark:bg-black/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-black rounded-lg flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-black dark:text-white">ProjectHub</span>
+            </div>
+            
+            <nav className="hidden md:flex items-center gap-8">
+              <a href="#features" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors">Features</a>
+              <a href="#pricing" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors">Pricing</a>
+              <a href="#testimonials" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors">Testimonials</a>
+              <Link to="/about" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors">About</Link>
+              <Link to="/contact" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors">Contact</Link>
+            </nav>
+
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <Link to="/login">
+                <Button 
+                  variant="outline" 
+                  className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white dark:border-red-400 dark:text-red-400 dark:hover:bg-red-400 dark:hover:text-black font-medium"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button className="bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600 font-medium shadow-lg hover:shadow-xl transition-all duration-300">
+                  Get Started
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleTheme}
-          className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
-        >
-          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </Button>
-      </div>
+      </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-6">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20" />
-        <div className="relative max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8">
-            <Star className="w-4 h-4 text-yellow-400" />
-            <span className="text-sm text-white">Trusted by 10,000+ teams worldwide</span>
-          </div>
-          
-          <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            {t.hero.title}
-          </h1>
-          
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-            {t.hero.subtitle}
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:-translate-y-1">
-                {t.hero.cta}
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-full">
-                {t.hero.login}
-              </Button>
-            </Link>
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="max-w-4xl mx-auto">
+            <Badge className="mb-6 bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 border-red-300 dark:border-red-700">
+              🚀 Trusted by 10,000+ teams worldwide
+            </Badge>
+            <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-black via-red-600 to-black dark:from-white dark:via-red-400 dark:to-white bg-clip-text text-transparent">
+              Manage Projects Like a Pro
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+              Streamline your workflow, boost team productivity, and deliver projects on time with our comprehensive project management platform.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/register">
+                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600 px-8 py-3 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                  Start Free Trial
+                  <Zap className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button size="lg" variant="outline" className="border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white dark:border-red-400 dark:text-red-400 dark:hover:bg-red-400 dark:hover:text-black px-8 py-3 text-lg font-medium">
+                  Sign In
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-transparent to-black/20">
-        <div className="max-w-7xl mx-auto">
+      <section id="features" className="py-20 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              {t.features.title}
-            </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Discover the tools that will revolutionize how your team works together
+            <h2 className="text-4xl font-bold mb-6 text-black dark:text-white">Powerful Features</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Everything you need to manage projects efficiently and effectively
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {t.features.cards.map((feature, index) => (
-              <Card 
-                key={index} 
-                className="group border-0 bg-white/5 backdrop-blur-xl hover:bg-white/10 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20"
-              >
-                <CardHeader className="text-center pb-4">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
-                    <feature.icon className="w-8 h-8 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-white dark:bg-gray-800">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center mb-4">
+                    <feature.icon className="w-6 h-6 text-white" />
                   </div>
-                  <CardTitle className="text-xl font-bold text-white group-hover:text-purple-300 transition-colors">
-                    {feature.title}
-                  </CardTitle>
+                  <CardTitle className="text-xl text-black dark:text-white">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-300 text-center leading-relaxed">
+                  <CardDescription className="text-gray-600 dark:text-gray-400 text-base">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -243,57 +219,83 @@ const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
+      <section id="pricing" className="py-20">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              {t.pricing.title}
-            </h2>
-            <p className="text-xl text-gray-300">
-              Flexible plans that grow with your business
+            <h2 className="text-4xl font-bold mb-6 text-black dark:text-white">Simple, Transparent Pricing</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Choose the plan that fits your team's needs
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {t.pricing.plans.map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`relative border-0 bg-white/5 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 ${
-                  index === 1 ? 'ring-2 ring-purple-500 shadow-2xl shadow-purple-500/20' : ''
-                }`}
-              >
-                {index === 1 && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1">
-                      Most Popular
-                    </Badge>
-                  </div>
+            {plans.map((plan, index) => (
+              <Card key={index} className={`border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 relative ${plan.popular ? 'ring-2 ring-red-500 scale-105' : ''} bg-white dark:bg-gray-800`}>
+                {plan.popular && (
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-500 text-white">
+                    Most Popular
+                  </Badge>
                 )}
-                <CardHeader className="text-center pb-6">
-                  <CardTitle className="text-2xl font-bold text-white mb-2">
-                    {plan.name}
-                  </CardTitle>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-white">{plan.price}</span>
-                    <span className="text-gray-400">{plan.period}</span>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl text-black dark:text-white">{plan.name}</CardTitle>
+                  <div className="mb-4">
+                    <span className="text-4xl font-bold text-red-600 dark:text-red-400">{plan.price}</span>
+                    {plan.period && <span className="text-gray-600 dark:text-gray-400">{plan.period}</span>}
                   </div>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    {plan.description}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {plan.features.map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
-                      <span className="text-gray-300">{feature}</span>
-                    </div>
-                  ))}
-                  <Button 
-                    className={`w-full mt-6 ${
-                      index === 1 
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
-                        : 'bg-white/10 hover:bg-white/20 border border-white/20'
-                    } text-white font-semibold py-3 rounded-full transition-all duration-300`}
-                  >
-                    Get Started
-                  </Button>
+                <CardContent>
+                  <ul className="space-y-3 mb-6">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/register">
+                    <Button 
+                      className={`w-full ${plan.popular 
+                        ? 'bg-red-600 hover:bg-red-700 text-white' 
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white'
+                      } font-medium`}
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-6 text-black dark:text-white">What Our Customers Say</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Join thousands of satisfied customers who trust ProjectHub
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
+                <CardContent className="p-6">
+                  <div className="flex mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 dark:text-gray-300 mb-6 italic">"{testimonial.content}"</p>
+                  <div>
+                    <div className="font-semibold text-black dark:text-white">{testimonial.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -302,22 +304,77 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Transform Your Workflow?
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Join thousands of teams already using our platform to deliver better results.
+      <section className="py-20 bg-gradient-to-r from-red-600 to-black dark:from-red-500 dark:to-gray-900">
+        <div className="max-w-4xl mx-auto text-center px-6">
+          <h2 className="text-4xl font-bold mb-6 text-white">Ready to Transform Your Projects?</h2>
+          <p className="text-xl mb-8 text-red-100">
+            Join thousands of teams who have already improved their productivity with ProjectHub
           </p>
-          <Link to="/register">
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-4 text-lg font-semibold rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:-translate-y-1">
-              Start Your Free Trial
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/register">
+              <Button size="lg" className="bg-white text-red-600 hover:bg-gray-100 px-8 py-3 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                Start Your Free Trial
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-red-600 px-8 py-3 text-lg font-medium">
+                Contact Sales
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="py-12 bg-black dark:bg-gray-950 text-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-xl font-bold">ProjectHub</span>
+              </div>
+              <p className="text-gray-400">
+                Empowering teams to deliver exceptional projects.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Product</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#features" className="hover:text-red-400 transition-colors">Features</a></li>
+                <li><a href="#pricing" className="hover:text-red-400 transition-colors">Pricing</a></li>
+                <li><Link to="/about" className="hover:text-red-400 transition-colors">About</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/contact" className="hover:text-red-400 transition-colors">Contact</Link></li>
+                <li><a href="#" className="hover:text-red-400 transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-red-400 transition-colors">Help Center</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Company</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-red-400 transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-red-400 transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-red-400 transition-colors">Careers</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 ProjectHub. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

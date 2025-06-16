@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -161,10 +162,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const getPermissionsByRole = (role: UserRole): string[] => {
+  const getPermissionsByRole = (role: UserRole): string[] =>  {
     switch (role) {
       case 'admin':
-        return ['read', 'write', 'delete', 'manage'];
+        return ['read', 'write', 'delete', 'manage', 'view_all_companies', 'view_all_plans'];
       case 'company':
         return ['read', 'write', 'manage-team'];
       case 'client':
@@ -226,7 +227,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             role: userData.role,
             company_name: userData.companyName || '',
             company_id: userData.companyId || ''
-          }
+          },
+          emailRedirectTo: undefined // Disable email confirmation
         }
       });
 
