@@ -17,7 +17,7 @@ import {
   Globe
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import LanguageConverter from "@/components/LanguageConverter";
+
 
 const Landing = () => {
   const features = [
@@ -304,18 +304,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Language Converter Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-6 text-black dark:text-white">Language Converter</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Translate English to Kiswahili for better communication
-            </p>
-          </div>
-          <LanguageConverter />
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-red-600 to-black dark:from-red-500 dark:to-gray-900">

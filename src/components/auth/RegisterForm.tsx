@@ -104,7 +104,7 @@ export const RegisterForm = ({ onSubmit, loading }: RegisterFormProps) => {
     }
 
     if (formData.role === 'client' && !formData.companyId) {
-      toast.error("Please select a company");
+      toast.error("Company selection is required for client accounts");
       return;
     }
 
@@ -177,18 +177,29 @@ export const RegisterForm = ({ onSubmit, loading }: RegisterFormProps) => {
       {formData.role === 'client' && (
         <div className="space-y-2">
           <Label htmlFor="company" className="text-gray-800">Select Company *</Label>
-          <Select onValueChange={handleCompanyChange} disabled={loadingCompanies}>
+          <Select onValueChange={handleCompanyChange} disabled={loadingCompanies} required>
             <SelectTrigger className="border-gray-300 focus:border-red-500 focus:ring-red-500">
               <SelectValue placeholder={loadingCompanies ? "Loading companies..." : "Select a company"} />
             </SelectTrigger>
             <SelectContent>
-              {companies.map((company) => (
-                <SelectItem key={company.id} value={company.id}>
-                  {company.name}
+              {companies.length > 0 ? (
+                companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-companies" disabled>
+                  No companies available
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
+          {companies.length === 0 && (
+            <p className="text-sm text-red-600 mt-1">
+              No companies found. Please contact admin to add your company first.
+            </p>
+          )}
         </div>
       )}
 
