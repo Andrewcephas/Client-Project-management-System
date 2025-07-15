@@ -29,9 +29,8 @@ export const useCompanyClients = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, status, created_at, company_id')
-        .eq('role', 'client')
+        .from('clients')
+        .select('id, full_name, email, status, created_at, company_id, user_id')
         .eq('company_id', user.companyId)
         .order('created_at', { ascending: false });
 
@@ -62,7 +61,7 @@ export const useCompanyClients = () => {
   const updateClientStatus = async (clientId: string, status: 'active' | 'inactive') => {
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from('clients')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', clientId);
 

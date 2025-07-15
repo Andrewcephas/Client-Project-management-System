@@ -49,9 +49,8 @@ const Projects = () => {
     try {
       console.log('Fetching clients for company:', user.companyId);
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, company_id, company_name')
-        .eq('role', 'client')
+        .from('clients')
+        .select('id, full_name, email, company_id, company_name, user_id')
         .eq('company_id', user.companyId);
 
       if (error) {
@@ -74,7 +73,7 @@ const Projects = () => {
   const handleAddProject = async () => {
     if (newProject.name && newProject.description && isCompany && user?.companyId) {
       // Find the selected client's full name for display
-      const selectedClient = clients.find(c => c.id === newProject.clientId);
+      const selectedClient = clients.find(c => c.user_id === newProject.clientId);
       const clientName = selectedClient ? selectedClient.full_name || selectedClient.email : newProject.client;
 
       await addProject({
@@ -231,7 +230,7 @@ const Projects = () => {
                         <Select 
                           value={newProject.clientId} 
                           onValueChange={(value) => {
-                            const selectedClient = clients.find(c => c.id === value);
+                            const selectedClient = clients.find(c => c.user_id === value);
                             setNewProject({
                               ...newProject, 
                               clientId: value,
@@ -245,7 +244,7 @@ const Projects = () => {
                           <SelectContent className="bg-white border shadow-lg z-50">
                             {clients.length > 0 ? (
                               clients.map((client) => (
-                                <SelectItem key={client.id} value={client.id}>
+                                <SelectItem key={client.id} value={client.user_id}>
                                   {client.full_name || client.email} ({client.email})
                                 </SelectItem>
                               ))
