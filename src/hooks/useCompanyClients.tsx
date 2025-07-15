@@ -32,6 +32,7 @@ export const useCompanyClients = () => {
         .from('clients')
         .select('id, full_name, email, status, created_at, company_id, user_id')
         .eq('company_id', user.companyId)
+        .not('user_id', 'is', null)
         .order('created_at', { ascending: false });
 
       if (error) {

@@ -17,7 +17,32 @@ import {
   Globe
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { usePricingRequest } from "@/hooks/usePricingRequest";
 
+
+const PricingButton = ({ plan }: { plan: any }) => {
+  const { submitPricingRequest, loading } = usePricingRequest();
+
+  const handlePricingClick = async () => {
+    await submitPricingRequest({
+      planName: plan.name,
+      planPrice: plan.price,
+    });
+  };
+
+  return (
+    <Button 
+      onClick={handlePricingClick}
+      disabled={loading}
+      className={`w-full ${plan.popular 
+        ? 'bg-red-600 hover:bg-red-700 text-white' 
+        : 'bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white'
+      } font-medium`}
+    >
+      {loading ? "Submitting..." : "Get Started"}
+    </Button>
+  );
+};
 
 const Landing = () => {
   const features = [
@@ -256,16 +281,7 @@ const Landing = () => {
                       </li>
                     ))}
                   </ul>
-                  <Link to="/register">
-                    <Button 
-                      className={`w-full ${plan.popular 
-                        ? 'bg-red-600 hover:bg-red-700 text-white' 
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white'
-                      } font-medium`}
-                    >
-                      Get Started
-                    </Button>
-                  </Link>
+                  <PricingButton plan={plan} />
                 </CardContent>
               </Card>
             ))}
@@ -357,23 +373,23 @@ const Landing = () => {
               <h3 className="font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><Link to="/contact" className="hover:text-red-400 transition-colors">Contact</Link></li>
-                <li><a href="#" className="hover:text-red-400 transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-red-400 transition-colors">Help Center</a></li>
+                <li><Link to="/documentation" className="hover:text-red-400 transition-colors">Documentation</Link></li>
+                <li><Link to="/help-center" className="hover:text-red-400 transition-colors">Help Center</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-red-400 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-red-400 transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-red-400 transition-colors">Careers</a></li>
+                <li><Link to="/privacy" className="hover:text-red-400 transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-red-400 transition-colors">Terms of Service</Link></li>
+                <li><Link to="/about" className="hover:text-red-400 transition-colors">About Us</Link></li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 ProjectHub. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} ProjectHub. All rights reserved.</p>
           </div>
         </div>
       </footer>

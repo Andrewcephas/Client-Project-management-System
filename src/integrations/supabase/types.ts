@@ -124,6 +124,8 @@ export type Database = {
           subscription_end_date: string | null
           subscription_plan: string | null
           subscription_status: string | null
+          trial_end_date: string | null
+          trial_start_date: string | null
           updated_at: string
         }
         Insert: {
@@ -135,6 +137,8 @@ export type Database = {
           subscription_end_date?: string | null
           subscription_plan?: string | null
           subscription_status?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
           updated_at?: string
         }
         Update: {
@@ -146,6 +150,8 @@ export type Database = {
           subscription_end_date?: string | null
           subscription_plan?: string | null
           subscription_status?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -282,6 +288,51 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          company_name: string | null
+          email: string
+          id: string
+          notes: string | null
+          phone: string | null
+          plan_name: string
+          plan_price: string
+          requested_at: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company_name?: string | null
+          email: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          plan_name: string
+          plan_price: string
+          requested_at?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company_name?: string | null
+          email?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          plan_name?: string
+          plan_price?: string
+          requested_at?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -297,6 +348,8 @@ export type Database = {
           subscription_end_date: string | null
           subscription_plan: string | null
           subscription_status: string | null
+          trial_end_date: string | null
+          trial_start_date: string | null
           updated_at: string
         }
         Insert: {
@@ -313,6 +366,8 @@ export type Database = {
           subscription_end_date?: string | null
           subscription_plan?: string | null
           subscription_status?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
           updated_at?: string
         }
         Update: {
@@ -329,6 +384,8 @@ export type Database = {
           subscription_end_date?: string | null
           subscription_plan?: string | null
           subscription_status?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -514,6 +571,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_trial_days_left: {
+        Args: { user_id: string }
+        Returns: number
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
