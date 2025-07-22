@@ -48,10 +48,32 @@ const Projects = () => {
 
     try {
       console.log('Fetching clients for company:', user.companyId);
+      
+      // Convert company_id from text to UUID for proper querying
+      let companyUuid;
+      try {
+        companyUuid = user.companyId;
+        // If companyId is not a valid UUID format, try to find it by matching company name/email
+        if (!user.companyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          // Find the actual company UUID by matching the company name
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('id')
+            .ilike('name', `%${user.companyName}%`)
+            .single();
+          
+          if (companyData) {
+            companyUuid = companyData.id;
+          }
+        }
+      } catch (error) {
+        console.error('Error processing company ID:', error);
+      }
+
       const { data, error } = await supabase
         .from('clients')
         .select('id, full_name, email, company_id, company_name, user_id')
-        .eq('company_id', user.companyId);
+        .eq('company_id', companyUuid);
 
       if (error) {
         console.error('Error fetching clients:', error);

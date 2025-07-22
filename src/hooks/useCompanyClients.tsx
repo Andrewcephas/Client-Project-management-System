@@ -28,10 +28,27 @@ export const useCompanyClients = () => {
     
     setLoading(true);
     try {
+      // Convert company_id from text to UUID for proper querying
+      let companyUuid = user.companyId;
+      
+      // If companyId is not a valid UUID format, try to find it by matching company name/email
+      if (!user.companyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        // Find the actual company UUID by matching the company name
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('id')
+          .ilike('name', `%${user.companyName}%`)
+          .single();
+        
+        if (companyData) {
+          companyUuid = companyData.id;
+        }
+      }
+
       const { data, error } = await supabase
         .from('clients')
         .select('id, full_name, email, status, created_at, company_id, user_id')
-        .eq('company_id', user.companyId)
+        .eq('company_id', companyUuid)
         .not('user_id', 'is', null)
         .order('created_at', { ascending: false });
 
