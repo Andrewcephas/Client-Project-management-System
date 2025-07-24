@@ -1,25 +1,25 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useUser } from './UserContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useUser } from './UserContext';
 import { toast } from 'sonner';
 
+// Define interfaces for our data types
 export interface Project {
   id: string;
   name: string;
-  description: string;
-  status: 'Planning' | 'In Progress' | 'Testing' | 'Completed' | 'On Hold';
+  description?: string;
+  status: 'Planning' | 'In Progress' | 'Completed' | 'On Hold';
   progress: number;
   team: TeamMember[];
   dueDate: string;
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  priority: 'Low' | 'Medium' | 'High';
   client: string;
-  clientId?: string;
+  clientId: string;
   companyId: string;
   budget: number;
   spent: number;
-  phase: string;
-  nextMilestone: string;
+  phase?: string;
+  nextMilestone?: string;
   lastUpdate: string;
   createdBy: string;
   assignedTo: string[];
@@ -43,17 +43,17 @@ export interface TeamMember {
 
 export interface Issue {
   id: string;
-  title: string;
-  description: string;
-  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
   projectId: string;
+  title: string;
+  description?: string;
+  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+  priority: 'Low' | 'Medium' | 'High';
   assignedTo?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
   labels: string[];
-  comments?: IssueComment[];
+  comments: IssueComment[];
 }
 
 export interface IssueComment {
@@ -62,18 +62,21 @@ export interface IssueComment {
   userId: string;
   content: string;
   createdAt: string;
-  updatedAt: string;
-  userName?: string;
+  author: {
+    name: string;
+    email: string;
+    avatar?: string;
+  };
 }
 
 export interface ProjectHistory {
   id: string;
   projectId: string;
+  changedBy: string;
   action: string;
   fieldChanged?: string;
   oldValue?: string;
   newValue?: string;
-  changedBy: string;
   createdAt: string;
 }
 
@@ -83,41 +86,57 @@ export interface Notification {
   title: string;
   message: string;
   type: 'info' | 'success' | 'warning' | 'error';
-  read: boolean;
   actionUrl?: string;
+  read: boolean;
   createdAt: string;
 }
 
+export interface ClientUser {
+  id: string;
+  full_name: string;
+  email: string;
+  company_id: string;
+  company_name: string;
+}
+
+// Context type definition
 interface ProjectContextType {
   projects: Project[];
   issues: Issue[];
   teamMembers: TeamMember[];
   notifications: Notification[];
   projectHistory: ProjectHistory[];
+  clients: ClientUser[];
   loading: boolean;
-  updateProject: (projectId: string, updates: Partial<Project>) => Promise<void>;
+  fetchProjects: () => Promise<void>;
+  fetchIssues: () => Promise<void>;
+  fetchTeamMembers: () => Promise<void>;
+  fetchNotifications: () => Promise<void>;
+  fetchProjectHistory: () => Promise<void>;
+  fetchClients: () => Promise<void>;
+  sendNotification: (userId: string, title: string, message: string, type?: string) => Promise<void>;
+  markNotificationAsRead: (notificationId: string) => Promise<void>;
   addProject: (project: Omit<Project, 'id'>) => Promise<void>;
+  updateProject: (projectId: string, updates: Partial<Project>) => Promise<void>;
   deleteProject: (projectId: string) => Promise<void>;
-  addIssue: (issue: Omit<Issue, 'id'>) => Promise<void>;
+  addIssue: (issue: Omit<Issue, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<void>;
   updateIssue: (issueId: string, updates: Partial<Issue>) => Promise<void>;
-  addIssueComment: (issueId: string, content: string) => Promise<void>;
+  deleteIssue: (issueId: string) => Promise<void>;
+  addIssueComment: (comment: Omit<IssueComment, 'id' | 'createdAt' | 'author'>) => Promise<void>;
+  deleteIssueComment: (commentId: string) => Promise<void>;
   addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
   updateTeamMember: (memberId: string, updates: Partial<TeamMember>) => Promise<void>;
-  deactivateTeamMember: (memberId: string) => Promise<void>;
-  assignProjectToTeam: (projectId: string, memberIds: string[]) => Promise<void>;
+  deleteTeamMember: (memberId: string) => Promise<void>;
   getProjectsByRole: () => Project[];
   getIssuesByRole: () => Issue[];
   getTeamMembersByRole: () => TeamMember[];
-  fetchProjects: () => Promise<void>;
-  sendNotification: (userId: string, title: string, message: string, type?: string) => Promise<void>;
-  markNotificationAsRead: (notificationId: string) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-export const useProject = () => {
+export const useProject = (): ProjectContextType => {
   const context = useContext(ProjectContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useProject must be used within a ProjectProvider');
   }
   return context;
@@ -134,17 +153,52 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [projectHistory, setProjectHistory] = useState<ProjectHistory[]>([]);
+  const [clients, setClients] = useState<ClientUser[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchProjects = async () => {
-    if (!user || !session) return;
-    
-    setLoading(true);
+  // Fetch clients from Supabase
+  const fetchClients = async () => {
+    if (!user || !isCompany) return;
+
     try {
       const { data, error } = await supabase
-        .from('projects')
+        .from('clients')
         .select('*')
-        .order('created_at', { ascending: false });
+        .eq('company_id', user.companyId);
+
+      if (error) throw error;
+
+      const formattedClients: ClientUser[] = data.map(client => ({
+        id: client.user_id,
+        full_name: client.full_name || '',
+        email: client.email,
+        company_id: client.company_id,
+        company_name: user.companyName || 'Unknown Company'
+      }));
+
+      setClients(formattedClients);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      toast.error('Failed to fetch clients');
+    }
+  };
+
+  // Fetch projects from Supabase
+  const fetchProjects = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      let query = supabase.from('projects').select('*');
+
+      if (isClient) {
+        query = query.eq('client_id', user.id);
+      } else if (isCompany && user.companyId) {
+        query = query.eq('company_id', user.companyId);
+      }
+      // Admin sees all projects
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -154,17 +208,17 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
         description: project.description || '',
         status: project.status as Project['status'],
         progress: project.progress,
-        team: [],
+        team: [], // Will be populated when team members are fetched
         dueDate: project.due_date || '',
         priority: project.priority as Project['priority'],
-        client: project.client,
-        clientId: project.client_id || undefined,
+        client: 'Unknown Client',
+        clientId: project.client_id,
         companyId: project.company_id,
         budget: Number(project.budget) || 0,
         spent: Number(project.spent) || 0,
         phase: project.phase || '',
         nextMilestone: project.next_milestone || '',
-        lastUpdate: new Date(project.updated_at).toISOString().split('T')[0],
+        lastUpdate: project.updated_at,
         createdBy: project.created_by || '',
         assignedTo: project.assigned_to || []
       }));
@@ -178,14 +232,19 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     }
   };
 
+  // Fetch team members from Supabase
   const fetchTeamMembers = async () => {
-    if (!user || !session) return;
+    if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let query = supabase.from('team_members').select('*');
+      
+      if (isCompany && user.companyId) {
+        query = query.eq('company_id', user.companyId);
+      }
+      // Admin sees all team members
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -212,29 +271,56 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     }
   };
 
+  // Fetch issues from Supabase
   const fetchIssues = async () => {
-    if (!user || !session) return;
+    if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('issues')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let query = supabase.from('issues').select(`
+        *,
+        comments:issue_comments(
+          *,
+          author:profiles!user_id(full_name, email, avatar_url)
+        )
+      `);
+
+      if (isClient) {
+        // Clients see issues for their projects
+        query = query.in('project_id', projects.filter(p => p.clientId === user.id).map(p => p.id));
+      } else if (isCompany && user.companyId) {
+        // Companies see issues for their projects
+        query = query.in('project_id', projects.filter(p => p.companyId === user.companyId).map(p => p.id));
+      }
+      // Admin sees all issues
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
       const formattedIssues: Issue[] = data.map(issue => ({
         id: issue.id,
+        projectId: issue.project_id,
         title: issue.title,
         description: issue.description || '',
         status: issue.status as Issue['status'],
         priority: issue.priority as Issue['priority'],
-        projectId: issue.project_id || '',
-        assignedTo: issue.assigned_to || undefined,
-        createdBy: issue.created_by || '',
+        assignedTo: issue.assigned_to,
+        createdBy: issue.created_by,
         createdAt: issue.created_at,
         updatedAt: issue.updated_at,
-        labels: issue.labels || []
+        labels: issue.labels || [],
+        comments: (issue.comments || []).map((comment: any) => ({
+          id: comment.id,
+          issueId: comment.issue_id,
+          userId: comment.user_id,
+          content: comment.content,
+          createdAt: comment.created_at,
+          author: {
+            name: comment.author?.full_name || 'Unknown User',
+            email: comment.author?.email || '',
+            avatar: comment.author?.avatar_url
+          }
+        }))
       }));
 
       setIssues(formattedIssues);
@@ -244,8 +330,9 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     }
   };
 
+  // Fetch notifications from Supabase
   const fetchNotifications = async () => {
-    if (!user || !session) return;
+    if (!user) return;
 
     try {
       const { data, error } = await supabase
@@ -262,42 +349,53 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
         title: notification.title,
         message: notification.message,
         type: notification.type as Notification['type'],
-        read: notification.read || false,
-        actionUrl: notification.action_url || undefined,
+        actionUrl: notification.action_url,
+        read: notification.read,
         createdAt: notification.created_at
       }));
 
       setNotifications(formattedNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      toast.error('Failed to fetch notifications');
     }
   };
 
+  // Fetch project history from Supabase
   const fetchProjectHistory = async () => {
-    if (!user || !session) return;
+    if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('project_history')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let query = supabase.from('project_history').select('*');
+
+      if (isClient) {
+        // Clients see history for their projects
+        query = query.in('project_id', projects.filter(p => p.clientId === user.id).map(p => p.id));
+      } else if (isCompany && user.companyId) {
+        // Companies see history for their projects
+        query = query.in('project_id', projects.filter(p => p.companyId === user.companyId).map(p => p.id));
+      }
+      // Admin sees all history
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
       const formattedHistory: ProjectHistory[] = data.map(history => ({
         id: history.id,
-        projectId: history.project_id || '',
+        projectId: history.project_id,
+        changedBy: history.changed_by,
         action: history.action,
-        fieldChanged: history.field_changed || undefined,
-        oldValue: history.old_value || undefined,
-        newValue: history.new_value || undefined,
-        changedBy: history.changed_by || '',
+        fieldChanged: history.field_changed,
+        oldValue: history.old_value,
+        newValue: history.new_value,
         createdAt: history.created_at
       }));
 
       setProjectHistory(formattedHistory);
     } catch (error) {
       console.error('Error fetching project history:', error);
+      toast.error('Failed to fetch project history');
     }
   };
 
@@ -308,8 +406,11 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       fetchIssues();
       fetchNotifications();
       fetchProjectHistory();
+      if (isCompany) {
+        fetchClients();
+      }
     }
-  }, [user, session]);
+  }, [user, session, isCompany]);
 
   const sendNotification = async (userId: string, title: string, message: string, type: string = 'info') => {
     try {
@@ -354,7 +455,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
           progress: project.progress,
           due_date: project.dueDate || null,
           priority: project.priority,
-          client: project.client,
           client_id: project.clientId || null,
           company_id: project.companyId,
           budget: project.budget,
@@ -395,7 +495,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
           progress: updates.progress,
           due_date: updates.dueDate,
           priority: updates.priority,
-          client: updates.client,
           budget: updates.budget,
           spent: updates.spent,
           phase: updates.phase,
@@ -433,7 +532,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     }
   };
 
-  const addIssue = async (issue: Omit<Issue, 'id'>) => {
+  const addIssue = async (issue: Omit<Issue, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => {
     if (!user) return;
 
     try {
@@ -490,24 +589,59 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     }
   };
 
-  const addIssueComment = async (issueId: string, content: string) => {
+  const deleteIssue = async (issueId: string) => {
+    try {
+      const { error } = await supabase
+        .from('issues')
+        .delete()
+        .eq('id', issueId);
+
+      if (error) throw error;
+
+      await fetchIssues();
+      toast.success('Issue deleted successfully');
+    } catch (error) {
+      console.error('Error deleting issue:', error);
+      toast.error('Failed to delete issue');
+    }
+  };
+
+  const addIssueComment = async (comment: Omit<IssueComment, 'id' | 'createdAt' | 'author'>) => {
     if (!user) return;
 
     try {
       const { error } = await supabase
         .from('issue_comments')
         .insert({
-          issue_id: issueId,
+          issue_id: comment.issueId,
           user_id: user.id,
-          content: content
+          content: comment.content
         });
 
       if (error) throw error;
 
+      await fetchIssues();
       toast.success('Comment added successfully');
     } catch (error) {
       console.error('Error adding comment:', error);
       toast.error('Failed to add comment');
+    }
+  };
+
+  const deleteIssueComment = async (commentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('issue_comments')
+        .delete()
+        .eq('id', commentId);
+
+      if (error) throw error;
+
+      await fetchIssues();
+      toast.success('Comment deleted successfully');
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      toast.error('Failed to delete comment');
     }
   };
 
@@ -571,77 +705,39 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     }
   };
 
-  const deactivateTeamMember = async (memberId: string) => {
+  const deleteTeamMember = async (memberId: string) => {
     try {
       const { error } = await supabase
         .from('team_members')
-        .update({ status: 'Inactive' })
+        .delete()
         .eq('id', memberId);
 
       if (error) throw error;
 
       await fetchTeamMembers();
-      toast.success('Team member deactivated successfully');
+      toast.success('Team member deleted successfully');
     } catch (error) {
-      console.error('Error deactivating team member:', error);
-      toast.error('Failed to deactivate team member');
+      console.error('Error deleting team member:', error);
+      toast.error('Failed to delete team member');
     }
   };
 
-  const assignProjectToTeam = async (projectId: string, memberIds: string[]) => {
-    try {
-      await updateProject(projectId, { assignedTo: memberIds });
-      
-      for (const memberId of memberIds) {
-        const member = teamMembers.find(m => m.id === memberId);
-        if (member) {
-          const updatedProjects = [...new Set([...member.projects, projectId])];
-          await updateTeamMember(memberId, { projects: updatedProjects });
-        }
-      }
-    } catch (error) {
-      console.error('Error assigning project to team:', error);
-      toast.error('Failed to assign project to team');
-    }
-  };
-
-  const getProjectsByRole = (): Project[] => {
-    if (isAdmin) {
-      return projects;
-    } else if (isCompany) {
-      return projects.filter(project => project.companyId === user?.companyId);
-    } else if (isClient) {
-      return projects.filter(project => project.clientId === user?.id);
-    }
+  const getProjectsByRole = () => {
+    if (isAdmin) return projects;
+    if (isClient) return projects.filter(p => p.clientId === user?.id);
+    if (isCompany) return projects.filter(p => p.companyId === user?.companyId);
     return [];
   };
 
-  const getIssuesByRole = (): Issue[] => {
+  const getIssuesByRole = () => {
     const userProjects = getProjectsByRole();
     const projectIds = userProjects.map(p => p.id);
-    
-    if (isAdmin) {
-      return issues;
-    } else if (isCompany) {
-      return issues.filter(issue => projectIds.includes(issue.projectId));
-    } else if (isClient) {
-      return issues.filter(issue => 
-        projectIds.includes(issue.projectId) || issue.createdBy === user?.id
-      );
-    }
-    return [];
+    return issues.filter(i => projectIds.includes(i.projectId));
   };
 
-  const getTeamMembersByRole = (): TeamMember[] => {
-    if (isAdmin) {
-      return teamMembers;
-    } else if (isCompany) {
-      return teamMembers;
-    } else if (isClient) {
-      const userProjects = getProjectsByRole();
-      const assignedMemberIds = userProjects.flatMap(p => p.assignedTo);
-      return teamMembers.filter(member => assignedMemberIds.includes(member.id));
-    }
+  const getTeamMembersByRole = () => {
+    if (isAdmin) return teamMembers;
+    if (isCompany) return teamMembers.filter(m => m.userId === user?.companyId);
     return [];
   };
 
@@ -653,23 +749,30 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
         teamMembers,
         notifications,
         projectHistory,
+        clients,
         loading,
-        updateProject,
+        fetchProjects,
+        fetchIssues,
+        fetchTeamMembers,
+        fetchNotifications,
+        fetchProjectHistory,
+        fetchClients,
+        sendNotification,
+        markNotificationAsRead,
         addProject,
+        updateProject,
         deleteProject,
         addIssue,
         updateIssue,
+        deleteIssue,
         addIssueComment,
+        deleteIssueComment,
         addTeamMember,
         updateTeamMember,
-        deactivateTeamMember,
-        assignProjectToTeam,
+        deleteTeamMember,
         getProjectsByRole,
         getIssuesByRole,
         getTeamMembersByRole,
-        fetchProjects,
-        sendNotification,
-        markNotificationAsRead,
       }}
     >
       {children}

@@ -103,6 +103,124 @@ export type Database = {
         }
         Relationships: []
       }
+      issue_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          issue_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          issue_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          issue_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_comments_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          labels: string[] | null
+          priority: string
+          project_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          labels?: string[] | null
+          priority?: string
+          project_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          labels?: string[] | null
+          priority?: string
+          project_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -149,6 +267,47 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_history: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string
+          field_changed: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          project_id: string | null
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          project_id?: string | null
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_history_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -214,6 +373,71 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "projects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          avatar: string | null
+          company_id: string
+          created_at: string
+          department: string | null
+          email: string
+          hire_date: string | null
+          id: string
+          name: string
+          permissions: string[] | null
+          phone: string | null
+          projects: string[] | null
+          role: string
+          salary: number | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          avatar?: string | null
+          company_id: string
+          created_at?: string
+          department?: string | null
+          email: string
+          hire_date?: string | null
+          id?: string
+          name: string
+          permissions?: string[] | null
+          phone?: string | null
+          projects?: string[] | null
+          role: string
+          salary?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          avatar?: string | null
+          company_id?: string
+          created_at?: string
+          department?: string | null
+          email?: string
+          hire_date?: string | null
+          id?: string
+          name?: string
+          permissions?: string[] | null
+          phone?: string | null
+          projects?: string[] | null
+          role?: string
+          salary?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
