@@ -55,7 +55,7 @@ const Issues = () => {
 
     try {
       let query = supabase.from('projects').select('id, name');
-      
+
       if (isClient) {
         // Clients only see projects they are assigned to
         query = query.eq('client_id', user.id);
@@ -64,7 +64,7 @@ const Issues = () => {
         query = query.eq('company_id', user.companyId);
       }
       // Admin sees all projects
-      
+
       const { data, error } = await query.order('name', { ascending: true });
 
       if (error) throw error;
@@ -79,16 +79,17 @@ const Issues = () => {
 
   const fetchIssues = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       let query = supabase
         .from('issues')
         .select(`
           *,
-          projects!inner(name)
+          projects!inner(name),
+          assigned_to
         `);
-      
+
       if (isClient) {
         // Clients see issues from their projects or issues they created
         query = query.or(`created_by.eq.${user.id},projects.client_id.eq.${user.id}`);
@@ -97,12 +98,12 @@ const Issues = () => {
         query = query.eq('projects.company_id', user.companyId);
       }
       // Admin sees all issues
-      
+
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const formattedIssues: Issue[] = data.map(issue => ({
+      const formattedIssues: Issue[] = (data || []).map(issue => ({
         id: issue.id,
         title: issue.title,
         description: issue.description || '',
@@ -110,7 +111,7 @@ const Issues = () => {
         priority: issue.priority as Issue['priority'],
         labels: issue.labels || [],
         project_id: issue.project_id,
-        project_name: issue.projects?.name,
+        project_name: issue.projects?.name || '', // fallback if undefined
         assigned_to: issue.assigned_to,
         created_by: issue.created_by,
         created_at: issue.created_at,
@@ -172,10 +173,10 @@ const Issues = () => {
 
   const filteredIssues = issues.filter(issue => {
     const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         issue.description.toLowerCase().includes(searchTerm.toLowerCase());
+      issue.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || issue.status.toLowerCase() === statusFilter;
     const matchesPriority = priorityFilter === "all" || issue.priority.toLowerCase() === priorityFilter;
-    
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -254,16 +255,16 @@ const Issues = () => {
                   <Input
                     id="issueTitle"
                     value={newIssue.title}
-                    onChange={(e) => setNewIssue({...newIssue, title: e.target.value})}
+                    onChange={(e) => setNewIssue({ ...newIssue, title: e.target.value })}
                     placeholder="Brief description of the issue"
                   />
                 </div>
 
                 <div className="grid gap-2">
                   <Label htmlFor="project">Project *</Label>
-                  <Select 
-                    value={newIssue.projectId} 
-                    onValueChange={(value) => setNewIssue({...newIssue, projectId: value})}
+                  <Select
+                    value={newIssue.projectId}
+                    onValueChange={(value) => setNewIssue({ ...newIssue, projectId: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a project" />
@@ -294,7 +295,7 @@ const Issues = () => {
                   <Textarea
                     id="description"
                     value={newIssue.description}
-                    onChange={(e) => setNewIssue({...newIssue, description: e.target.value})}
+                    onChange={(e) => setNewIssue({ ...newIssue, description: e.target.value })}
                     placeholder="Detailed description of the issue..."
                     className="min-h-[100px]"
                   />
@@ -302,9 +303,9 @@ const Issues = () => {
 
                 <div className="grid gap-2">
                   <Label htmlFor="priority">Priority</Label>
-                  <Select 
-                    value={newIssue.priority} 
-                    onValueChange={(value: "Low" | "Medium" | "High" | "Critical") => setNewIssue({...newIssue, priority: value})}
+                  <Select
+                    value={newIssue.priority}
+                    onValueChange={(value: "Low" | "Medium" | "High" | "Critical") => setNewIssue({ ...newIssue, priority: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -322,8 +323,8 @@ const Issues = () => {
                 <Button variant="outline" onClick={() => setIsAddIssueOpen(false)}>
                   Cancel
                 </Button>
-                <Button 
-                  onClick={addIssue} 
+                <Button
+                  onClick={addIssue}
                   className="bg-emerald-600 hover:bg-emerald-700"
                   disabled={!newIssue.title || !newIssue.description || !newIssue.projectId}
                 >
@@ -345,7 +346,7 @@ const Issues = () => {
               className="pl-10 w-64 border-emerald-200 focus:border-emerald-500 bg-white/70 backdrop-blur-sm"
             />
           </div>
-          
+
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-40 border-emerald-200 focus:border-emerald-500 bg-white/70 backdrop-blur-sm">
               <Filter className="w-4 h-4 mr-2" />
@@ -380,7 +381,7 @@ const Issues = () => {
             filteredIssues.map((issue, index) => {
               const StatusIcon = getStatusIcon(issue.status);
               return (
-                <Card key={issue.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm animate-fade-in" style={{animationDelay: `${index * 100}ms`}}>
+                <Card key={issue.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -419,7 +420,7 @@ const Issues = () => {
                   {searchTerm ? "No issues match your search criteria" : "No issues have been reported yet"}
                 </p>
                 {projects.length > 0 && (
-                  <Button 
+                  <Button
                     onClick={() => setIsAddIssueOpen(true)}
                     className="bg-emerald-600 hover:bg-emerald-700"
                   >
