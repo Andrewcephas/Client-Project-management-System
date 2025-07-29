@@ -10,6 +10,8 @@ import { Building2, Users, CreditCard, AlertTriangle, TrendingUp, Plus, Search, 
 import { useUser } from "@/contexts/UserContext";
 import { useCompanies } from "@/hooks/useCompanies";
 import CompanyManagement from "@/components/CompanyManagement";
+import AdminUserManagement from "@/components/AdminUserManagement";
+import AdminPricingManagement from "@/components/AdminPricingManagement";
 
 const AdminDashboard = () => {
   const { user } = useUser();
@@ -83,16 +85,25 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Main Content Tabs */}
         <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="companies">Company Management</TabsTrigger>
-            <TabsTrigger value="overview">System Overview</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="companies">Companies</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="pricing">Pricing</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="companies">
             <CompanyManagement />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <AdminUserManagement />
+          </TabsContent>
+
+          <TabsContent value="pricing">
+            <AdminPricingManagement />
           </TabsContent>
 
           <TabsContent value="overview">
