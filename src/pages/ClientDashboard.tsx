@@ -73,7 +73,7 @@ const ClientDashboard = () => {
         nextMilestone: project.next_milestone || 'To be determined',
         lastUpdate: new Date(project.updated_at).toISOString().split('T')[0],
         dueDate: project.due_date,
-        client: project.client,
+        client: 'Client', // Default client name
         companyId: project.company_id
       }));
 

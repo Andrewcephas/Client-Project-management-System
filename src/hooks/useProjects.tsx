@@ -116,26 +116,29 @@ export const useProjects = ()  => {
 
       if (error) throw error;
 
-      const formattedProjects: Project[] = (data || []).map(project => ({
-        id: project.id,
-        name: project.name,
-        description: project.description || '',
-        status: project.status as Project['status'],
-        progress: project.progress,
-        team: [],
-        dueDate: project.due_date || '',
-        priority: project.priority as Project['priority'],
-        client: project.client,
-        clientId: project.client_id || undefined,
-        companyId: project.company_id,
-        budget: Number(project.budget) || 0,
-        spent: Number(project.spent) || 0,
-        phase: project.phase || '',
-        nextMilestone: project.next_milestone || '',
-        lastUpdate: new Date(project.updated_at).toISOString().split('T')[0],
-        createdBy: project.created_by || '',
-        assignedTo: project.assigned_to || []
-      }));
+      const formattedProjects: Project[] = (data || []).map(project => {
+        const clientUser = clients.find(c => c.id === project.client_id);
+        return {
+          id: project.id,
+          name: project.name,
+          description: project.description || '',
+          status: project.status as Project['status'],
+          progress: project.progress,
+          team: [],
+          dueDate: project.due_date || '',
+          priority: project.priority as Project['priority'],
+          client: clientUser ? clientUser.full_name || clientUser.email : 'Unknown Client',
+          clientId: project.client_id || undefined,
+          companyId: project.company_id,
+          budget: Number(project.budget) || 0,
+          spent: Number(project.spent) || 0,
+          phase: project.phase || '',
+          nextMilestone: project.next_milestone || '',
+          lastUpdate: new Date(project.updated_at).toISOString().split('T')[0],
+          createdBy: project.created_by || '',
+          assignedTo: project.assigned_to || []
+        };
+      });
 
       setProjects(formattedProjects);
     } catch (error) {

@@ -29,7 +29,7 @@ const Projects = () => {
     client: "",
     clientId: "",
     dueDate: "",
-    priority: "Medium" as "Low" | "Medium" | "High" | "Critical",
+    priority: "Medium" as "Low" | "Medium" | "High",
     budget: 0
   });
 
@@ -307,7 +307,7 @@ const Projects = () => {
                       </div>
                       <div className="grid gap-2">
                         <Label htmlFor="priority">Priority</Label>
-                        <Select value={newProject.priority} onValueChange={(value: "Low" | "Medium" | "High" | "Critical") => setNewProject({...newProject, priority: value})}>
+                        <Select value={newProject.priority} onValueChange={(value: "Low" | "Medium" | "High") => setNewProject({...newProject, priority: value})}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -315,7 +315,6 @@ const Projects = () => {
                             <SelectItem value="Low">Low</SelectItem>
                             <SelectItem value="Medium">Medium</SelectItem>
                             <SelectItem value="High">High</SelectItem>
-                            <SelectItem value="Critical">Critical</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

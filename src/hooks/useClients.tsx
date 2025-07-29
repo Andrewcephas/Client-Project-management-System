@@ -51,7 +51,8 @@ export const useClients = () => {
         ...client,
         status: client.status as 'active' | 'inactive',
         full_name: client.full_name || client.email.split('@')[0],
-        avatar: (client.full_name || client.email.split('@')[0]).split(' ').map(n => n[0]).join('').toUpperCase()
+        avatar: (client.full_name || client.email.split('@')[0]).split(' ').map(n => n[0]).join('').toUpperCase(),
+        company_name: 'Unknown Company' // Add default company_name
       }));
 
       setClients(formattedClients);
